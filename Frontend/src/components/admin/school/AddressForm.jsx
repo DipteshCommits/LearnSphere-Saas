@@ -6,7 +6,8 @@ import {
     Typography,
     Button,
 } from "@mui/material";
-import { useState } from "react";
+import axios from "../../../utils/axios";
+import { useEffect, useState } from "react";
 
 export default function AddressForm() {
     const [formData, setFormData] = useState({
@@ -18,6 +19,25 @@ export default function AddressForm() {
         postalCode: "",
     });
 
+    const [loading, setLoading] = useState(true);
+
+    useEffect(() => {
+        const fetchData = async () => {
+            try {
+                const { data } = await axios.get("/org-admin/school/address-information");
+                console.log("Fetched data:", data.data);
+                setFormData(data.data);
+                console.log("Form data set:", formData);
+            } catch (error) {
+                console.error("Error fetching address information:", error);
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        fetchData();
+    }, []);
+
     const handleChange = ({ target: { name, value } }) => {
         setFormData((prev) => ({
             ...prev,
@@ -25,10 +45,26 @@ export default function AddressForm() {
         }));
     }
 
-    const handleSubmit = (e)=>{
+    const handleSubmit = (e) => {
         e.preventDefault();
 
-        console.log(formData);
+        const payload = {
+            ...formData,
+            addressLine1: formData.addressLine1.trim(),
+            addressLine2: formData.addressLine2.trim(),
+            city: formData.city.trim(),
+            state: formData.state.trim(),
+            country: formData.country.trim(),
+            postalCode: formData.postalCode.trim(),
+        }
+
+        axios.patch("/org-admin/school/address-information", payload)
+            .then((response) => {
+                console.log("Address information updated:", response.data);
+            })
+            .catch((error) => {
+                console.error("Error updating address information:", error);
+            });
     }
 
     return (
@@ -97,7 +133,7 @@ export default function AddressForm() {
                         onChange={handleChange}
                     />
                 </Grid>
-                
+
                 <Grid item xs={12}>
                     <Button variant="contained" color="primary" onClick={handleSubmit}>
                         Submit

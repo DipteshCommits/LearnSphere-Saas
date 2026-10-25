@@ -7,6 +7,7 @@ import gradeRoutes from '../modules/grade/grade.routes.js';
 import sectionRoutes from '../modules/section/section.routes.js';
 import enrollmentRoutes from '../modules/enrollment/enrollment.routes.js';
 import orgAdminDashboardRoutes from '../modules/org-admin/dashboard/dashboard.routes.js';
+import schoolProfileRoutes from '../modules/org-admin/school/schoolProfile.routes.js';
 
 
 const router = Router();
@@ -18,5 +19,6 @@ router.use('/org-admin/grades',gradeRoutes);
 router.use('/org-admin/sections',sectionRoutes);
 router.use('/org-admin/enrollments',enrollmentRoutes);
 router.use('/org-admin/dashboard',orgAdminDashboardRoutes);
+router.use('/org-admin/school',schoolProfileRoutes);
 
 export default router;

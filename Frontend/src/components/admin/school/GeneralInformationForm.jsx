@@ -5,8 +5,13 @@ import {
     MenuItem,
     Typography,
     Button,
+    CircularProgress
 } from "@mui/material";
 import { useMemo, useState } from "react";
+import axios from "../../../utils/axios";
+import { use } from "react";
+import { useEffect } from "react";
+
 
 const schoolTypes = [
     "Government",
@@ -29,11 +34,33 @@ const initialState = {
     otherSchoolType: "",
     establishedYear: "",
     registrationNumber: "",
-    website: "",
+    website: ""
 };
 
 export default function GeneralInformationForm() {
     const [formData, setFormData] = useState(initialState);
+    const [loading, setLoading] = useState(true);
+
+    useEffect(() => {
+        const fetchData = async () => {
+            try {
+                const { data } = await axios.get(
+                    "/org-admin/school/general-information"
+                );
+                console.log("Fetched data:", data.data);
+                setFormData(data.data);
+                console.log("Form data set:", formData);
+            } catch (err) {
+                console.error(err);
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        fetchData();
+    }, []);
+
+
 
     const handleChange = ({ target: { name, value } }) => {
         setFormData((prev) => {
@@ -56,6 +83,16 @@ export default function GeneralInformationForm() {
         [formData.schoolType]
     );
 
+    if (loading) {
+        return <Box
+            mt={4}
+            display="flex"
+            justifyContent="flex-end"
+        >
+            <CircularProgress aria-label="Loading…" />
+        </Box>;
+    }
+
     const handleSubmit = (e) => {
         e.preventDefault();
 
@@ -65,11 +102,24 @@ export default function GeneralInformationForm() {
             schoolCode: formData.schoolCode.trim(),
             registrationNumber: formData.registrationNumber.trim(),
             website: formData.website.trim(),
-            schoolType:
+            schoolType: formData.schoolType,
+            otherSchoolType:
                 formData.schoolType === "Other"
                     ? formData.otherSchoolType.trim()
-                    : formData.schoolType,
+                    : null,
         };
+
+
+
+        axios.patch("/org-admin/school/general-information", payload)
+            .then((response) => {
+                console.log("Data submitted successfully:", response.data);
+            })
+            .catch((error) => {
+                console.error("Error submitting data:", error);
+            });
+
+
 
         console.log(payload);
     };

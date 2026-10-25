@@ -6,7 +6,8 @@ import {
     Typography,
     Button,
 } from "@mui/material";
-import { useState } from "react";
+import axios from "../../../utils/axios";
+import { useEffect, useState } from "react";
 
 export default function ContactInformationForm() {
     const [formData, setFormData] = useState({
@@ -15,6 +16,26 @@ export default function ContactInformationForm() {
         altPhone: "",
         supportEmail: "",
     });
+
+    const [loading, setLoading] = useState(true);
+
+    useEffect(() => {
+        const fetchData = async () => {
+            try {
+                const { data } = await axios.get("/org-admin/school/contact-information");
+
+                console.log("Fetched data:", data.data);
+                setFormData(data.data);
+                console.log("Form data set:", formData);
+            } catch (error) {
+                console.error("Error fetching contact information:", error);
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        fetchData();
+    }, []);
 
     const handleChange = ({ target: { name, value } }) => {
         setFormData((prev) => ({
@@ -26,7 +47,22 @@ export default function ContactInformationForm() {
 
     const handleSubmit = (e) => {
         e.preventDefault();
-        // Handle form submission logic here
+
+        const payload = {
+            ...formData,
+            email: formData.email.trim(),
+            phoneNumber: formData.phone.trim(),
+            alternatePhoneNumber: formData.altPhone.trim(),
+            supportEmail: formData.supportEmail.trim(),
+        }
+
+        axios.patch("/org-admin/school/contact-information", payload)
+            .then((response) => {
+                console.log("Contact information updated:", response.data);
+            })
+            .catch((error) => {
+                console.error("Error updating contact information:", error);
+            });
     }
 
     return (

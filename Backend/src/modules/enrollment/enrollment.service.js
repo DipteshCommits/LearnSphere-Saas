@@ -38,7 +38,13 @@ export const enrollStudent = async ({
         throw err;
     }
 
-    const section = await findSectionById(sectionId);
+    if (Number(grade.academic_year_id) !== Number(activeYear.id)) {
+        const err = new Error('Grade does not belong to the active academic year');
+        err.statusCode = 400;
+        throw err;
+    }
+
+    const section = await findSectionById(sectionId, gradeId, activeYear.id);
     if (!section) {
         const err = new Error('Section not found');
         err.statusCode = 404;
@@ -63,6 +69,6 @@ export const enrollStudent = async ({
 };
 
 
-export const getStudentEnrollments = async (studentId) => {
-    return await getEnrollmentsByStudent(studentId);
+export const getStudentEnrollments = async (studentId, organizationId) => {
+    return await getEnrollmentsByStudent(studentId, organizationId);
 }

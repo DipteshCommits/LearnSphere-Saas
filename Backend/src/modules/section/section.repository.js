@@ -34,14 +34,15 @@ export const findSectionByNameAndYear = (
     });
 };
 
-export const findSectionById = (sectionId)=>{
+export const findSectionById = (sectionId, gradeId, academicYearId)=>{
     return new Promise((resolve,reject)=>{
         db.query(
-            `SELECT * FROM sections WHERE id = ?`,
-            [sectionId],
+            `SELECT id FROM sections
+            WHERE id = ? AND grade_id = ? AND academic_year_id = ?`,
+            [sectionId, gradeId, academicYearId],
             (err,results)=>{
                 if(err) return reject(err);
-                resolve(results);
+                resolve(results.length ? results[0] : null);
             }
         )
     })
@@ -62,4 +63,3 @@ export const getSectionsByGradeAndYear = (
         );
     });
 };
-

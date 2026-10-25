@@ -36,8 +36,9 @@ export const createEnrollment = async (req, res, next) => {
 export const getEnrollments = async (req, res, next) => {
     try {
         const { studentId } = req.params;
+        const organizationId = req.user.organizationId;
 
-        const data = await getStudentEnrollments(studentId);
+        const data = await getStudentEnrollments(studentId, organizationId);
 
         res.status(200).json({ data });
     } catch (error) {

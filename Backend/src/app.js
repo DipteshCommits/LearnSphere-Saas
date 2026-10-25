@@ -1,5 +1,6 @@
 import express from 'express';
 import cors from 'cors';
+import path from "path";
 
 import routes from './routes/index.js';
 import errorMiddleware from './middlewares/error.middleware.js';
@@ -9,7 +10,12 @@ app.use(cors());
 app.use(express.json());
 
 app.use('/api', routes);
-
+app.use(
+    "/uploads",
+    express.static(
+        path.join(process.cwd(), "uploads")
+    )
+);
 
 // Global Error Handler Middleware
 
