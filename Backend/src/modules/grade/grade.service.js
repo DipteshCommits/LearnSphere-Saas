@@ -9,6 +9,12 @@ import {
 } from '../academic-year/academicYear.service.js';
 
 export const addGrade = async ({gradeName,organizationId}) => {
+    const normalizedName = typeof gradeName === 'string' ? gradeName.trim() : '';
+    if (!normalizedName || normalizedName.length > 50) {
+        const error = new Error('Grade name is required and must be 50 characters or fewer');
+        error.statusCode = 400;
+        throw error;
+    }
 
     const activeYear = await getActiveAcademicYear(organizationId);
 
@@ -18,7 +24,7 @@ export const addGrade = async ({gradeName,organizationId}) => {
         throw error;
     }
 
-    const existing = await findGradeByNameAndOrg(gradeName,organizationId, activeYear.id);
+    const existing = await findGradeByNameAndOrg(normalizedName, organizationId, activeYear.id);
 
     if(existing){
         const error = new Error('Grade already exists');
@@ -27,7 +33,7 @@ export const addGrade = async ({gradeName,organizationId}) => {
     }
 
     return await createGrade({
-        gradeName,
+        gradeName: normalizedName,
         organizationId,
         academicYearId: activeYear.id
     });
@@ -36,5 +42,7 @@ export const addGrade = async ({gradeName,organizationId}) => {
 
 
 export const listGrades = async (organizationId)=>{
-    return await getGradesByOrganization(organizationId);
-}
+    const activeYear = await getActiveAcademicYear(organizationId);
+    if (!activeYear) return [];
+    return await getGradesByOrganization(organizationId, activeYear.id);
+};

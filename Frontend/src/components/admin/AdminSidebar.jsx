@@ -65,7 +65,7 @@ const menuItems = [
             },
             {
                 text: "Subjects",
-                path: "/admin/subjects",
+                comingSoon: true,
             },
         ],
     },
@@ -84,7 +84,7 @@ const menuItems = [
             },
             {
                 text: "Enrollments",
-                path: "/admin/enrollments",
+                comingSoon: true,
             },
         ],
     },
@@ -95,15 +95,15 @@ const menuItems = [
         children: [
             {
                 text: "Teachers",
-                path: "/admin/teachers",
+                comingSoon: true,
             },
             {
                 text: "Departments",
-                path: "/admin/departments",
+                comingSoon: true,
             },
             {
                 text: "Assignments",
-                path: "/admin/teacher-assignments",
+                comingSoon: true,
             },
         ],
     },
@@ -114,15 +114,15 @@ const menuItems = [
         children: [
             {
                 text: "Timetable",
-                path: "/admin/timetable",
+                comingSoon: true,
             },
             {
                 text: "Attendance",
-                path: "/admin/attendance",
+                comingSoon: true,
             },
             {
                 text: "Homework",
-                path: "/admin/homework",
+                comingSoon: true,
             },
         ],
     },
@@ -133,15 +133,15 @@ const menuItems = [
         children: [
             {
                 text: "Exams",
-                path: "/admin/exams",
+                comingSoon: true,
             },
             {
                 text: "Marks",
-                path: "/admin/marks",
+                comingSoon: true,
             },
             {
                 text: "Report Cards",
-                path: "/admin/report-cards",
+                comingSoon: true,
             },
         ],
     },
@@ -152,11 +152,11 @@ const menuItems = [
         children: [
             {
                 text: "Fees",
-                path: "/admin/fees",
+                comingSoon: true,
             },
             {
                 text: "Payments",
-                path: "/admin/payments",
+                comingSoon: true,
             },
         ],
     },
@@ -167,11 +167,11 @@ const menuItems = [
         children: [
             {
                 text: "Announcements",
-                path: "/admin/announcements",
+                comingSoon: true,
             },
             {
                 text: "Messages",
-                path: "/admin/messages",
+                comingSoon: true,
             },
         ],
     },
@@ -179,7 +179,7 @@ const menuItems = [
     {
         text: "Reports",
         icon: <BarChart />,
-        path: "/admin/reports",
+        comingSoon: true,
     },
 
     {
@@ -188,19 +188,19 @@ const menuItems = [
         children: [
             {
                 text: "Users",
-                path: "/admin/users",
+                comingSoon: true,
             },
             {
                 text: "Roles & Permissions",
-                path: "/admin/roles",
+                comingSoon: true,
             },
             {
                 text: "Audit Logs",
-                path: "/admin/audit-logs",
+                comingSoon: true,
             },
             {
                 text: "Settings",
-                path: "/admin/settings",
+                comingSoon: true,
             },
         ],
     },
@@ -270,12 +270,17 @@ const AdminSidebar = ({ width }) => {
                                         {item.children.map((child) => (
                                             <ListItemButton
                                                 key={child.text}
-                                                component={NavLink}
-                                                to={child.path}
+                                                component={child.comingSoon ? "div" : NavLink}
+                                                to={child.comingSoon ? undefined : child.path}
+                                                disabled={child.comingSoon}
                                                 sx={{
                                                     pl: 7,
                                                     borderRadius: 2,
                                                     mb: 0.5,
+                                                    ...(child.comingSoon && {
+                                                        opacity: 0.65,
+                                                        cursor: "default",
+                                                    }),
 
                                                     "&.active": {
                                                         bgcolor: "#e0f2fe",
@@ -286,6 +291,7 @@ const AdminSidebar = ({ width }) => {
                                             >
                                                 <ListItemText
                                                     primary={child.text}
+                                                    secondary={child.comingSoon ? "Coming soon" : undefined}
                                                 />
                                             </ListItemButton>
                                         ))}
@@ -294,11 +300,16 @@ const AdminSidebar = ({ width }) => {
                             </>
                         ) : (
                             <ListItemButton
-                                component={NavLink}
-                                to={item.path}
+                                component={item.comingSoon ? "div" : NavLink}
+                                to={item.comingSoon ? undefined : item.path}
+                                disabled={item.comingSoon}
                                 sx={{
                                     borderRadius: 2,
                                     mb: 0.5,
+                                    ...(item.comingSoon && {
+                                        opacity: 0.65,
+                                        cursor: "default",
+                                    }),
 
                                     "&.active": {
                                         bgcolor: "#e0f2fe",
@@ -312,7 +323,10 @@ const AdminSidebar = ({ width }) => {
                             >
                                 <ListItemIcon>{item.icon}</ListItemIcon>
 
-                                <ListItemText primary={item.text} />
+                                <ListItemText
+                                    primary={item.text}
+                                    secondary={item.comingSoon ? "Coming soon" : undefined}
+                                />
                             </ListItemButton>
                         )}
                     </Box>

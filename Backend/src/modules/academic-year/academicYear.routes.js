@@ -3,7 +3,8 @@ import {Router} from 'express';
 import {
     createYear,
     getYears,
-    getActiveYear
+    getActiveYear,
+    activateAcademicYear
 } from './academicYear.controller.js';
 
 import {authMiddleware} from '../../middlewares/auth.middleware.js';
@@ -19,5 +20,6 @@ router.post('/',createYear);
 router.get('/',getYears);
 
 router.get('/active',getActiveYear);
+router.patch('/:id/activate', activateAcademicYear);
 
 export default router;

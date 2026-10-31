@@ -23,43 +23,46 @@ export const createAcademicYear = ({
 
 export const getAcademicYearsByOrganization = (organizationId) => {
     return new Promise((resolve, reject) => {
-        db.query(`SELECT * FROM academic_years WHERE organization_id=?`,
-            [`organizationId`],
-            (err, result) => {
-                if (err)
-                    return reject(err);
-                else
-                    resolve(result);
-            });
-
-    });
-}
-
-export const deactivateAllYears = (organizationId) => {
-    return new Promise((resolve, reject) => {
-        db.query(`UPDATE academic_years SET is_active= false WHERE organization_id=?`,
+        db.query(
+            `SELECT id, year_label, start_date, end_date, is_active
+            FROM academic_years
+            WHERE organization_id = ?
+            ORDER BY start_date DESC, id DESC`,
             [organizationId],
-            (err) => {
-                if (err) {
-                    return reject(err);
-                } else {
-                    resolve();
-                }
+            (err, result) => {
+                if (err) return reject(err);
+                resolve(result);
             }
-        )
+        );
     });
 };
 
-export const activateYear = (yearId) => {
+export const findYearByIdAndOrg = (yearId, organizationId) => {
     return new Promise((resolve, reject) => {
-        db.query(`UPDATE academic_years SET is_active=true WHERE id=?`,
-            [yearId],
+        db.query(
+            `SELECT id FROM academic_years WHERE id = ? AND organization_id = ?`,
+            [yearId, organizationId],
+            (err, results) => {
+                if (err) return reject(err);
+                resolve(results.length ? results[0] : null);
+            }
+        );
+    });
+};
+
+export const activateYear = (yearId, organizationId) => {
+    return new Promise((resolve, reject) => {
+        db.query(
+            `UPDATE academic_years
+            SET is_active = (id = ?)
+            WHERE organization_id = ?`,
+            [yearId, organizationId],
             (err) => {
                 if (err) return reject(err);
                 resolve();
             }
-        )
-    })
+        );
+    });
 };
 
 
@@ -92,5 +95,3 @@ export const findActiveYearByOrg= (organizationId)=>{
         );
     });
 };
-
-

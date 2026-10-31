@@ -1,6 +1,10 @@
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
-import {findUserByEmail} from './auth.repository.js';
+import {
+    findUserByEmail,
+    findUserPasswordById,
+    updateUserPassword
+} from './auth.repository.js';
 import dotenv from 'dotenv';
 
 dotenv.config();
@@ -34,7 +38,30 @@ export const loginUser = async (email, password) => {
             name: user.name,
             email: user.email,
             role: user.role,
-            organizationId: user.organizationId
+            organizationId: user.organizationId,
+            mustChangePassword: Boolean(Number(user.mustChangePassword))
         }
     };
+};
+
+export const changePassword = async (userId, currentPassword, newPassword) => {
+    const user = await findUserPasswordById(userId);
+    if (!user || !user.must_change_password) {
+        const error = new Error('Password change is not required for this account');
+        error.statusCode = 400;
+        throw error;
+    }
+
+    const isCurrentPasswordValid = await bcrypt.compare(
+        currentPassword,
+        user.password_hash
+    );
+    if (!isCurrentPasswordValid) {
+        const error = new Error('Current password is incorrect');
+        error.statusCode = 400;
+        throw error;
+    }
+
+    const passwordHash = await bcrypt.hash(newPassword, 12);
+    await updateUserPassword(userId, passwordHash);
 };

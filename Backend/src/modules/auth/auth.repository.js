@@ -8,7 +8,8 @@ export const findUserByEmail = (email) => {
             email,
             password_hash,
             role,
-            organization_id AS organizationId
+            organization_id AS organizationId,
+            must_change_password AS mustChangePassword
             FROM users WHERE email=?`,
             [email],
             (err, results) => {
@@ -16,6 +17,36 @@ export const findUserByEmail = (email) => {
                     return reject(err);
                 }
                 resolve(results.length ? results[0] : null);
+            }
+        );
+    });
+};
+
+export const findUserPasswordById = (userId) => {
+    return new Promise((resolve, reject) => {
+        db.query(
+            `SELECT password_hash, must_change_password
+            FROM users
+            WHERE id = ?`,
+            [userId],
+            (err, results) => {
+                if (err) return reject(err);
+                resolve(results.length ? results[0] : null);
+            }
+        );
+    });
+};
+
+export const updateUserPassword = (userId, passwordHash) => {
+    return new Promise((resolve, reject) => {
+        db.query(
+            `UPDATE users
+            SET password_hash = ?, must_change_password = 0
+            WHERE id = ?`,
+            [passwordHash, userId],
+            (err) => {
+                if (err) return reject(err);
+                resolve();
             }
         );
     });

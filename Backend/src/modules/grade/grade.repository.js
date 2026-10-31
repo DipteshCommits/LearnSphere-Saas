@@ -1,9 +1,11 @@
 import db from '../../database/db.js';
 
-export const findGradeByNameAndOrg = (gradeName, organizationId)=>{
+export const findGradeByNameAndOrg = (gradeName, organizationId, academicYearId)=>{
     return new Promise((resolve,reject)=>{
-        db.query(`SELECT id FROM grades WHERE grade_name=? AND organization_id=?`,
-            [gradeName,organizationId],
+        db.query(
+            `SELECT id FROM grades
+            WHERE grade_name = ? AND organization_id = ? AND academic_year_id = ?`,
+            [gradeName, organizationId, academicYearId],
             (err,results)=>{
                 if(err) return reject(err);
                 resolve(results.length?results[0]:null);
@@ -38,10 +40,13 @@ export const createGrade = ({gradeName,organizationId,academicYearId})=>{
 };
 
 
-export const getGradesByOrganization = (organizationId)=>{
+export const getGradesByOrganization = (organizationId, academicYearId)=>{
     return new Promise((resolve,reject)=>{
-        db.query(`SELECT id, grade_name, created_at FROM grades WHERE organization_id = ? ORDER BY created_at DESC`,
-            [organizationId],
+        db.query(
+            `SELECT id, grade_name, created_at FROM grades
+            WHERE organization_id = ? AND academic_year_id = ?
+            ORDER BY created_at DESC`,
+            [organizationId, academicYearId],
             (err,results)=>{
                 if(err) return reject(err);
                 resolve(results);

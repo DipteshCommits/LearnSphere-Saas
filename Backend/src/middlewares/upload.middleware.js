@@ -39,11 +39,9 @@ const fileFilter = (req, file, cb) => {
     ];
 
     if (!allowedTypes.includes(file.mimetype)) {
-        return cb(
-            new Error(
-                "Only PNG, JPG and SVG files are allowed."
-            )
-        );
+        const error = new Error("Only PNG, JPG and SVG files are allowed.");
+        error.statusCode = 400;
+        return cb(error);
     }
 
     cb(null, true);
@@ -53,6 +51,6 @@ export const uploadLogoMiddleware = multer({
     storage,
     fileFilter,
     limits: {
-        fileSize: 10 * 1024 * 1024
+        fileSize: 2 * 1024 * 1024
     }
 });

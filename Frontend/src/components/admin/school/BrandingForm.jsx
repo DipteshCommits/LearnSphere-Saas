@@ -16,13 +16,19 @@ import {
 import { useEffect, useRef, useState } from "react";
 import axios from "../../../utils/axios";
 
-const MAX_FILE_SIZE = 10 * 1024 * 1024;
+const MAX_FILE_SIZE = 2 * 1024 * 1024;
 
 const ALLOWED_TYPES = [
     "image/png",
     "image/jpeg",
     "image/svg+xml",
 ];
+
+const resolveLogoUrl = (logoUrl) =>
+    new URL(
+        logoUrl,
+        new URL(axios.defaults.baseURL, window.location.origin)
+    ).toString();
 
 const BrandingForm = () => {
     const inputRef = useRef(null);
@@ -46,7 +52,7 @@ const BrandingForm = () => {
 
                 if (data.data?.logoUrl) {
                     setExistingLogo(data.data);
-                    setPreview(data.data.logoUrl);
+                    setPreview(resolveLogoUrl(data.data.logoUrl));
                 }
             } catch (error) {
                 setError(
@@ -129,7 +135,7 @@ const BrandingForm = () => {
         setSuccess("");
 
         if (existingLogo?.logoUrl) {
-            setPreview(existingLogo.logoUrl);
+            setPreview(resolveLogoUrl(existingLogo.logoUrl));
         } else {
             setPreview("");
         }
@@ -156,7 +162,7 @@ const BrandingForm = () => {
             );
 
             setExistingLogo(data.data);
-            setPreview(data.data.logoUrl);
+            setPreview(resolveLogoUrl(data.data.logoUrl));
             setLogo(null);
 
             if (previewUrlRef.current) {

@@ -39,7 +39,9 @@ export const uploadLogo = async (
     file
 ) => {
     if (!file) {
-        throw new Error("Logo file is required");
+        const error = new Error("Logo file is required");
+        error.statusCode = 400;
+        throw error;
     }
 
     const logoUrl =

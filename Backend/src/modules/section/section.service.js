@@ -14,10 +14,9 @@ export const addSection = async ({
     sectionName
 }) => {
     const activeYear = await getActiveAcademicYear(organizationId);
-    console.log({organizationId,activeYear});
 
     if (!activeYear) {
-        const error = new Error('No active academic year found!!!!!');
+        const error = new Error('No active academic year found');
         error.statusCode = 400;
         throw error;
     }
@@ -30,10 +29,23 @@ export const addSection = async ({
         throw error;
     }
 
+    if (Number(grade.academic_year_id) !== Number(activeYear.id)) {
+        const error = new Error('Grade does not belong to the active academic year');
+        error.statusCode = 400;
+        throw error;
+    }
+
+    const normalizedName = typeof sectionName === 'string' ? sectionName.trim() : '';
+    if (!normalizedName || normalizedName.length > 50) {
+        const error = new Error('Section name is required and must be 50 characters or fewer');
+        error.statusCode = 400;
+        throw error;
+    }
+
     const existingSection = await findSectionByNameAndYear(
         gradeId,
         activeYear.id,
-        sectionName
+        normalizedName
     );
 
     if (existingSection) {
@@ -45,7 +57,7 @@ export const addSection = async ({
     await createSection({
         gradeId,
         academicYearId: activeYear.id,
-        sectionName
+        sectionName: normalizedName
     });
 };
 
@@ -58,6 +70,13 @@ export const listSectionsByGrade = async ({
 
     if (!activeYear) {
         return [];
+    }
+
+    const grade = await findGradeByIdAndOrg(gradeId, organizationId);
+    if (!grade || Number(grade.academic_year_id) !== Number(activeYear.id)) {
+        const error = new Error('Grade not found for the active academic year');
+        error.statusCode = 404;
+        throw error;
     }
 
     return await getSectionsByGradeAndYear(gradeId, activeYear.id);

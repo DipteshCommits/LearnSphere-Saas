@@ -10,7 +10,7 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { useState } from 'react';
 
 export default function LoginForm() {
-  const { login } = useAuth();
+  const { login, logout } = useAuth();
   const navigate = useNavigate();
   const { role } = useParams();
 
@@ -27,13 +27,18 @@ export default function LoginForm() {
 
       // Safety check
       if (user.role !== role.toUpperCase()) {
+        logout();
         setError('Role mismatch');
         return;
       }
 
-      if (user.role === 'ORG_ADMIN') navigate('/admin');
-      if (user.role === 'STUDENT') navigate('/student');
-      if (user.role === 'TEACHER') navigate('/teacher');
+      if (user.mustChangePassword) {
+        navigate('/change-password');
+      } else if (user.role === 'ORG_ADMIN') {
+        navigate('/admin');
+      } else {
+        navigate('/');
+      }
 
     } catch {
       setError('Invalid credentials');
