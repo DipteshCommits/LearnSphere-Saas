@@ -190,3 +190,95 @@ export const getStudentEnrollmentHistory = (studentId, organizationId) => {
         );
     });
 };
+
+export const updateStudentAndCurrentEnrollment = async ({
+    studentId,
+    organizationId,
+    academicYearId,
+    name,
+    email,
+    admissionNo,
+    gradeId,
+    sectionId,
+    rollNo
+}) => {
+    const connection = await getConnection();
+    try {
+        await finishTransaction(connection, 'beginTransaction');
+        const validPlacement = await runQuery(
+            connection,
+            `SELECT g.id
+            FROM academic_years ay
+            JOIN grades g ON g.organization_id = ay.organization_id
+                AND g.academic_year_id = ay.id
+            JOIN sections sec ON sec.grade_id = g.id
+                AND sec.academic_year_id = ay.id
+            WHERE ay.id = ? AND ay.organization_id = ? AND ay.is_active = 1
+                AND g.id = ? AND sec.id = ?
+            FOR UPDATE`,
+            [academicYearId, organizationId, gradeId, sectionId]
+        );
+        if (!validPlacement.length) {
+            const error = new Error('The selected grade and section are no longer available for the active academic year');
+            error.statusCode = 409;
+            throw error;
+        }
+
+        const students = await runQuery(
+            connection,
+            `SELECT s.id, e.id AS enrollment_id
+            FROM students s
+            JOIN users u ON s.user_id = u.id
+            LEFT JOIN enrollments e
+                ON e.student_id = s.id AND e.academic_year_id = ?
+            WHERE s.id = ? AND u.organization_id = ? AND u.role = 'STUDENT'
+            FOR UPDATE`,
+            [academicYearId, studentId, organizationId]
+        );
+
+        if (!students.length) {
+            const error = new Error('Student not found');
+            error.statusCode = 404;
+            throw error;
+        }
+
+        if (!students[0].enrollment_id) {
+            const error = new Error('Student has no enrollment in the active academic year');
+            error.statusCode = 409;
+            throw error;
+        }
+
+        await runQuery(
+            connection,
+            `UPDATE users
+            SET name = ?, email = ?
+            WHERE id = (
+                SELECT user_id FROM students WHERE id = ?
+            )`,
+            [name, email, studentId]
+        );
+        await runQuery(
+            connection,
+            `UPDATE students SET admission_no = ? WHERE id = ?`,
+            [admissionNo, studentId]
+        );
+        await runQuery(
+            connection,
+            `UPDATE enrollments
+            SET grade_id = ?, section_id = ?, roll_no = ?
+            WHERE id = ? AND academic_year_id = ?`,
+            [gradeId, sectionId, rollNo || null, students[0].enrollment_id, academicYearId]
+        );
+
+        await finishTransaction(connection, 'commit');
+    } catch (error) {
+        try {
+            await finishTransaction(connection, 'rollback');
+        } catch (rollbackError) {
+            console.error('Failed to roll back student update transaction', rollbackError);
+        }
+        throw error;
+    } finally {
+        connection.release();
+    }
+};

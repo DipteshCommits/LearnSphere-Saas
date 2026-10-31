@@ -9,6 +9,7 @@ import enrollmentRoutes from '../modules/enrollment/enrollment.routes.js';
 import orgAdminDashboardRoutes from '../modules/org-admin/dashboard/dashboard.routes.js';
 import schoolProfileRoutes from '../modules/org-admin/school/schoolProfile.routes.js';
 import studentManagementRoutes from '../modules/org-admin/student-management/studentManagement.routes.js';
+import teacherManagementRoutes from '../modules/org-admin/teacher-management/teacherManagement.routes.js';
 
 
 const router = Router();
@@ -22,5 +23,6 @@ router.use('/org-admin/enrollments',enrollmentRoutes);
 router.use('/org-admin/dashboard',orgAdminDashboardRoutes);
 router.use('/org-admin/school',schoolProfileRoutes);
 router.use('/org-admin/students', studentManagementRoutes);
+router.use('/org-admin/teachers', teacherManagementRoutes);
 
 export default router;

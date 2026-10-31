@@ -1,7 +1,8 @@
 import {
     admitStudent,
     getStudentProfile,
-    listStudents
+    listStudents,
+    updateStudent
 } from "./studentManagement.service.js";
 
 export const createStudent = async (req, res, next) => {
@@ -58,6 +59,24 @@ export const getStudent = async (req, res, next) => {
 
         const student = await getStudentProfile(studentId, req.user.organizationId);
         res.status(200).json({ data: student });
+    } catch (error) {
+        next(error);
+    }
+};
+
+export const updateStudentDetails = async (req, res, next) => {
+    try {
+        const studentId = Number(req.params.studentId);
+        if (!Number.isSafeInteger(studentId) || studentId <= 0) {
+            return res.status(400).json({ message: 'A valid student ID is required' });
+        }
+
+        await updateStudent({
+            ...req.body,
+            studentId,
+            organizationId: req.user.organizationId
+        });
+        res.status(200).json({ message: 'Student and active-year enrollment updated successfully' });
     } catch (error) {
         next(error);
     }

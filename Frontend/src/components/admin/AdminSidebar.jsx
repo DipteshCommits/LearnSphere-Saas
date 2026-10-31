@@ -95,7 +95,7 @@ const menuItems = [
         children: [
             {
                 text: "Teachers",
-                comingSoon: true,
+                path: "/admin/teachers",
             },
             {
                 text: "Departments",

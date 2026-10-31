@@ -3,7 +3,8 @@ import {
     createStudentWithEnrollment,
     getStudentEnrollmentHistory,
     getStudentProfileByOrganization,
-    getStudentsWithFilters
+    getStudentsWithFilters,
+    updateStudentAndCurrentEnrollment
 } from "./studentManagement.repository.js";
 import { findActiveYearByOrg } from '../../academic-year/academicYear.repository.js';
 import { findGradeByIdAndOrg } from '../../grade/grade.repository.js';
@@ -141,4 +142,81 @@ export const getStudentProfile = async (studentId, organizationId) => {
             isCurrentYear: Boolean(Number(enrollment.isCurrentYear))
         }))
     };
+};
+
+export const updateStudent = async ({
+    studentId,
+    organizationId,
+    name,
+    email,
+    admissionNo,
+    gradeId,
+    sectionId,
+    rollNo
+}) => {
+    const normalizedName = typeof name === 'string' ? name.trim() : '';
+    const normalizedEmail = typeof email === 'string' ? email.trim().toLowerCase() : '';
+    const normalizedAdmissionNo = typeof admissionNo === 'string' ? admissionNo.trim() : '';
+    const normalizedRollNo = typeof rollNo === 'string' ? rollNo.trim() : '';
+
+    if (!normalizedName || !normalizedEmail || !normalizedAdmissionNo || !gradeId || !sectionId) {
+        const error = new Error('Name, email, admission number, grade, and section are required');
+        error.statusCode = 400;
+        throw error;
+    }
+
+    if (normalizedName.length > 255 || normalizedEmail.length > 191
+        || normalizedAdmissionNo.length > 50 || normalizedRollNo.length > 20) {
+        const error = new Error('Some fields exceed their maximum allowed length');
+        error.statusCode = 400;
+        throw error;
+    }
+
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(normalizedEmail)) {
+        const error = new Error('Provide a valid email address');
+        error.statusCode = 400;
+        throw error;
+    }
+
+    const activeYear = await findActiveYearByOrg(organizationId);
+    if (!activeYear) {
+        const error = new Error('No active academic year found');
+        error.statusCode = 400;
+        throw error;
+    }
+
+    const grade = await findGradeByIdAndOrg(gradeId, organizationId);
+    if (!grade || Number(grade.academic_year_id) !== Number(activeYear.id)) {
+        const error = new Error('Grade not found for the active academic year');
+        error.statusCode = 404;
+        throw error;
+    }
+
+    const section = await findSectionById(sectionId, gradeId, activeYear.id);
+    if (!section) {
+        const error = new Error('Section not found for the selected grade and active academic year');
+        error.statusCode = 404;
+        throw error;
+    }
+
+    try {
+        await updateStudentAndCurrentEnrollment({
+            studentId,
+            organizationId,
+            academicYearId: activeYear.id,
+            name: normalizedName,
+            email: normalizedEmail,
+            admissionNo: normalizedAdmissionNo,
+            gradeId,
+            sectionId,
+            rollNo: normalizedRollNo
+        });
+    } catch (error) {
+        if (error.code === 'ER_DUP_ENTRY') {
+            const conflict = new Error('That email or admission number is already in use');
+            conflict.statusCode = 409;
+            throw conflict;
+        }
+        throw error;
+    }
 };

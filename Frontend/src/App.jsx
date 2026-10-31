@@ -16,6 +16,7 @@ import Sections from "./pages/admin/Sections";
 import AddStudent from "./pages/admin/students/AddStudent";
 import ChangePassword from "./pages/login/ChangePassword";
 import StudentProfile from "./pages/admin/students/StudentProfile";
+import Teachers from "./pages/admin/Teachers";
 
 function App() {
   return (
@@ -52,6 +53,7 @@ function App() {
           <Route path="academic-years" element={<AcademicYears />} />
           <Route path="grades" element={<Grades />} />
           <Route path="sections" element={<Sections />} />
+          <Route path="teachers" element={<Teachers />} />
         </Route>
       </Routes>
     </BrowserRouter>
