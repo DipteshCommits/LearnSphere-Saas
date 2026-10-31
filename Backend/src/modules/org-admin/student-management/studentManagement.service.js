@@ -1,6 +1,8 @@
 import bcrypt from 'bcryptjs';
 import {
     createStudentWithEnrollment,
+    getStudentEnrollmentHistory,
+    getStudentProfileByOrganization,
     getStudentsWithFilters
 } from "./studentManagement.repository.js";
 import { findActiveYearByOrg } from '../../academic-year/academicYear.repository.js';
@@ -119,4 +121,24 @@ export const listStudents = async ({
         search,
         status
     });
+};
+
+export const getStudentProfile = async (studentId, organizationId) => {
+    const profile = await getStudentProfileByOrganization(studentId, organizationId);
+    if (!profile) {
+        const error = new Error('Student not found');
+        error.statusCode = 404;
+        throw error;
+    }
+
+    const enrollments = await getStudentEnrollmentHistory(studentId, organizationId);
+    return {
+        ...profile,
+        isActive: Boolean(Number(profile.isActive)),
+        mustChangePassword: Boolean(Number(profile.mustChangePassword)),
+        enrollments: enrollments.map((enrollment) => ({
+            ...enrollment,
+            isCurrentYear: Boolean(Number(enrollment.isCurrentYear))
+        }))
+    };
 };

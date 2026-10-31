@@ -25,7 +25,8 @@ export const findUserByEmail = (email) => {
 export const findUserPasswordById = (userId) => {
     return new Promise((resolve, reject) => {
         db.query(
-            `SELECT password_hash, must_change_password
+            `SELECT password_hash, must_change_password, role,
+                organization_id AS organizationId
             FROM users
             WHERE id = ?`,
             [userId],

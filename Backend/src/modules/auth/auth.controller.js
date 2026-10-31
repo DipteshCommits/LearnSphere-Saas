@@ -47,8 +47,11 @@ export const changeCurrentUserPassword = async (req, res, next) => {
             });
         }
 
-        await changePassword(req.user.id, currentPassword, newPassword);
-        res.status(200).json({ message: "Password changed successfully" });
+        const token = await changePassword(req.user.id, currentPassword, newPassword);
+        res.status(200).json({
+            message: "Password changed successfully",
+            data: { token }
+        });
     } catch (error) {
         next(error);
     }

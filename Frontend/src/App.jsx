@@ -15,6 +15,7 @@ import Grades from "./pages/admin/Grades";
 import Sections from "./pages/admin/Sections";
 import AddStudent from "./pages/admin/students/AddStudent";
 import ChangePassword from "./pages/login/ChangePassword";
+import StudentProfile from "./pages/admin/students/StudentProfile";
 
 function App() {
   return (
@@ -45,6 +46,7 @@ function App() {
         >
           <Route index element={<AdminDashboard />} />
           <Route path="students" element={<Students />} />
+          <Route path="students/:studentId" element={<StudentProfile />} />
           <Route path="admissions" element={<AddStudent />} />
           <Route path="school-profile" element={<SchoolProfile />} />
           <Route path="academic-years" element={<AcademicYears />} />

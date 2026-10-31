@@ -13,10 +13,19 @@ export const authMiddleware = (req, res, next) => {
 
         const decoded = jwt.verify(token, process.env.JWT_SECRET);
 
+        if (decoded.mustChangePassword && (
+            req.method !== 'POST' || req.path !== '/change-password'
+        )) {
+            return res.status(403).json({
+                message: 'Change your temporary password before continuing'
+            });
+        }
+
         req.user = {
             id: decoded.userId,
             role: decoded.role,
-            organizationId: decoded.organizationId
+            organizationId: decoded.organizationId,
+            mustChangePassword: Boolean(decoded.mustChangePassword)
         };
 
         next();

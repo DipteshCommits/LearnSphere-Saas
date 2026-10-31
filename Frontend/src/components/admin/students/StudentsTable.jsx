@@ -7,9 +7,13 @@ import {
     TableRow,
     Paper,
     CircularProgress,
+    Button,
 } from "@mui/material";
+import { useNavigate } from "react-router-dom";
 
 export default function StudentsTable({ students, loading }) {
+    const navigate = useNavigate();
+
     if (loading) return <CircularProgress aria-label="Loading students" />;
 
     return (
@@ -24,13 +28,14 @@ export default function StudentsTable({ students, loading }) {
                         <TableCell>Section</TableCell>
                         <TableCell>Roll No</TableCell>
                         <TableCell>Status</TableCell>
+                        <TableCell>Profile</TableCell>
                     </TableRow>
                 </TableHead>
 
                 <TableBody>
                     {students.length === 0 ? (
                         <TableRow>
-                            <TableCell colSpan={7} align="center">
+                            <TableCell colSpan={8} align="center">
                                 No students found for these filters.
                             </TableCell>
                         </TableRow>
@@ -43,6 +48,11 @@ export default function StudentsTable({ students, loading }) {
                             <TableCell>{student.sectionName || "-"}</TableCell>
                             <TableCell>{student.rollNo || "-"}</TableCell>
                             <TableCell>{student.isActive ? "Active" : "Inactive"}</TableCell>
+                            <TableCell>
+                                <Button onClick={() => navigate(`/admin/students/${student.studentId}`)}>
+                                    View
+                                </Button>
+                            </TableCell>
                         </TableRow>
                     ))}
                 </TableBody>

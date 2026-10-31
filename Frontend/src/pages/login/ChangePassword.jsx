@@ -12,7 +12,7 @@ import axios from "../../utils/axios";
 import { useAuth } from "../../context/AuthContext";
 
 export default function ChangePassword() {
-    const { user, updateUser } = useAuth();
+    const { user, updateUser, updateToken } = useAuth();
     const navigate = useNavigate();
     const [currentPassword, setCurrentPassword] = useState("");
     const [newPassword, setNewPassword] = useState("");
@@ -31,10 +31,11 @@ export default function ChangePassword() {
 
         setSaving(true);
         try {
-            await axios.post("/auth/change-password", {
+            const { data } = await axios.post("/auth/change-password", {
                 currentPassword,
                 newPassword,
             });
+            updateToken(data.data.token);
             updateUser({ ...user, mustChangePassword: false });
             navigate(user.role === "ORG_ADMIN" ? "/admin" : "/", { replace: true });
         } catch (requestError) {

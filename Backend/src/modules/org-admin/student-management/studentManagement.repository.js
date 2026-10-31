@@ -136,3 +136,57 @@ export const getStudentsWithFilters = ({
 
     });
 };
+
+export const getStudentProfileByOrganization = (studentId, organizationId) => {
+    return new Promise((resolve, reject) => {
+        db.query(
+            `SELECT
+                s.id AS studentId,
+                s.admission_no AS admissionNo,
+                s.created_at AS admittedAt,
+                u.name,
+                u.email,
+                u.is_active AS isActive,
+                u.must_change_password AS mustChangePassword
+            FROM students s
+            JOIN users u ON s.user_id = u.id
+            WHERE s.id = ? AND u.organization_id = ? AND u.role = 'STUDENT'`,
+            [studentId, organizationId],
+            (error, results) => {
+                if (error) return reject(error);
+                resolve(results.length ? results[0] : null);
+            }
+        );
+    });
+};
+
+export const getStudentEnrollmentHistory = (studentId, organizationId) => {
+    return new Promise((resolve, reject) => {
+        db.query(
+            `SELECT
+                e.id AS enrollmentId,
+                e.roll_no AS rollNo,
+                e.created_at AS enrolledAt,
+                ay.id AS academicYearId,
+                ay.year_label AS academicYear,
+                ay.is_active AS isCurrentYear,
+                g.id AS gradeId,
+                g.grade_name AS gradeName,
+                sec.id AS sectionId,
+                sec.section_name AS sectionName
+            FROM enrollments e
+            JOIN students s ON e.student_id = s.id
+            JOIN users u ON s.user_id = u.id
+            JOIN academic_years ay ON e.academic_year_id = ay.id
+            JOIN grades g ON e.grade_id = g.id
+            JOIN sections sec ON e.section_id = sec.id
+            WHERE e.student_id = ? AND u.organization_id = ? AND u.role = 'STUDENT'
+            ORDER BY ay.start_date DESC, e.id DESC`,
+            [studentId, organizationId],
+            (error, results) => {
+                if (error) return reject(error);
+                resolve(results);
+            }
+        );
+    });
+};

@@ -1,4 +1,8 @@
-import { admitStudent, listStudents } from "./studentManagement.service.js";
+import {
+    admitStudent,
+    getStudentProfile,
+    listStudents
+} from "./studentManagement.service.js";
 
 export const createStudent = async (req, res, next) => {
     try {
@@ -40,6 +44,20 @@ export const getStudents = async (req, res, next) => {
         res.status(200).json({
             data: students
         });
+    } catch (error) {
+        next(error);
+    }
+};
+
+export const getStudent = async (req, res, next) => {
+    try {
+        const studentId = Number(req.params.studentId);
+        if (!Number.isSafeInteger(studentId) || studentId <= 0) {
+            return res.status(400).json({ message: 'A valid student ID is required' });
+        }
+
+        const student = await getStudentProfile(studentId, req.user.organizationId);
+        res.status(200).json({ data: student });
     } catch (error) {
         next(error);
     }

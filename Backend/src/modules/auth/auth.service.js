@@ -27,7 +27,8 @@ export const loginUser = async (email, password) => {
     const token = jwt.sign({
         userId: user.id,
         role: user.role,
-        organizationId: user.organizationId
+        organizationId: user.organizationId,
+        mustChangePassword: Boolean(Number(user.mustChangePassword))
     }, process.env.JWT_SECRET, {expiresIn: '7d'}
 );
 
@@ -64,4 +65,10 @@ export const changePassword = async (userId, currentPassword, newPassword) => {
 
     const passwordHash = await bcrypt.hash(newPassword, 12);
     await updateUserPassword(userId, passwordHash);
+    return jwt.sign({
+        userId: user.id,
+        role: user.role,
+        organizationId: user.organizationId,
+        mustChangePassword: false
+    }, process.env.JWT_SECRET, { expiresIn: '7d' });
 };
