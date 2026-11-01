@@ -12,6 +12,9 @@ import studentManagementRoutes from '../modules/org-admin/student-management/stu
 import teacherManagementRoutes from '../modules/org-admin/teacher-management/teacherManagement.routes.js';
 import subjectManagementRoutes from '../modules/org-admin/subject-management/subjectManagement.routes.js';
 import teacherAssignmentRoutes from '../modules/org-admin/teacher-assignment/teacherAssignment.routes.js';
+import classTeacherAssignmentRoutes from '../modules/org-admin/class-teacher-assignment/classTeacherAssignment.routes.js';
+import timetableRoutes from '../modules/org-admin/timetable/timetable.routes.js';
+import attendanceRoutes from '../modules/org-admin/attendance/attendance.routes.js';
 
 
 const router = Router();
@@ -28,5 +31,8 @@ router.use('/org-admin/students', studentManagementRoutes);
 router.use('/org-admin/teachers', teacherManagementRoutes);
 router.use('/org-admin/subjects', subjectManagementRoutes);
 router.use('/org-admin/teacher-assignments', teacherAssignmentRoutes);
+router.use('/org-admin/class-teacher-assignments', classTeacherAssignmentRoutes);
+router.use('/org-admin/timetable', timetableRoutes);
+router.use('/org-admin/attendance', attendanceRoutes);
 
 export default router;

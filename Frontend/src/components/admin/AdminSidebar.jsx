@@ -105,6 +105,10 @@ const menuItems = [
                 text: "Assignments",
                 path: "/admin/teacher-assignments",
             },
+            {
+                text: "Class Teachers",
+                path: "/admin/class-teachers",
+            },
         ],
     },
 
@@ -114,11 +118,11 @@ const menuItems = [
         children: [
             {
                 text: "Timetable",
-                comingSoon: true,
+                path: "/admin/timetable",
             },
             {
                 text: "Attendance",
-                comingSoon: true,
+                path: "/admin/attendance",
             },
             {
                 text: "Homework",
