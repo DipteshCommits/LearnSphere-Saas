@@ -5,6 +5,10 @@ import {
     Button,
     Chip,
     CircularProgress,
+    Dialog,
+    DialogActions,
+    DialogContent,
+    DialogTitle,
     MenuItem,
     Paper,
     Stack,
@@ -14,6 +18,7 @@ import {
     TableContainer,
     TableHead,
     TableRow,
+    TextField,
     Typography,
 } from "@mui/material";
 import { useNavigate, useParams } from "react-router-dom";
@@ -35,11 +40,20 @@ export default function StudentProfile() {
     const [student, setStudent] = useState(null);
     const [grades, setGrades] = useState([]);
     const [sections, setSections] = useState([]);
+    const [enrollmentSections, setEnrollmentSections] = useState([]);
     const [form, setForm] = useState(emptyForm);
+    const [enrollmentGradeId, setEnrollmentGradeId] = useState("");
+    const [enrollmentSectionId, setEnrollmentSectionId] = useState("");
+    const [enrollmentRollNo, setEnrollmentRollNo] = useState("");
+    const [loadingEnrollmentSections, setLoadingEnrollmentSections] = useState(false);
+    const [enrollmentDialogOpen, setEnrollmentDialogOpen] = useState(false);
     const [editing, setEditing] = useState(false);
     const [loading, setLoading] = useState(true);
     const [saving, setSaving] = useState(false);
+    const [enrolling, setEnrolling] = useState(false);
     const [error, setError] = useState("");
+    const [enrollmentError, setEnrollmentError] = useState("");
+    const [success, setSuccess] = useState("");
 
     const loadStudent = useCallback(async (cancelled = () => false) => {
         setLoading(true);
@@ -102,6 +116,32 @@ export default function StudentProfile() {
         };
     }, [form.gradeId]);
 
+    useEffect(() => {
+        if (!enrollmentDialogOpen || !enrollmentGradeId) {
+            setEnrollmentSections([]);
+            setLoadingEnrollmentSections(false);
+            return undefined;
+        }
+
+        let cancelled = false;
+        setLoadingEnrollmentSections(true);
+        axios.get("/org-admin/sections", { params: { gradeId: enrollmentGradeId } })
+            .then(({ data }) => {
+                if (!cancelled) setEnrollmentSections(data.data || []);
+            })
+            .catch((requestError) => {
+                if (!cancelled) {
+                    setEnrollmentError(requestError.response?.data?.message || "Could not load sections.");
+                }
+            })
+            .finally(() => {
+                if (!cancelled) setLoadingEnrollmentSections(false);
+            });
+        return () => {
+            cancelled = true;
+        };
+    }, [enrollmentDialogOpen, enrollmentGradeId]);
+
     const handleChange = (event) => {
         const { name, value } = event.target;
         setForm((current) => ({
@@ -127,6 +167,28 @@ export default function StudentProfile() {
         }
     };
 
+    const handleEnroll = async (event) => {
+        event.preventDefault();
+        setEnrolling(true);
+        setEnrollmentError("");
+        setSuccess("");
+        try {
+            await axios.post("/org-admin/enrollments", {
+                studentId,
+                gradeId: enrollmentGradeId,
+                sectionId: enrollmentSectionId,
+                rollNo: enrollmentRollNo,
+            });
+            setEnrollmentDialogOpen(false);
+            setSuccess("Student enrolled in the active academic year.");
+            await loadStudent();
+        } catch (requestError) {
+            setEnrollmentError(requestError.response?.data?.message || "Could not enroll student.");
+        } finally {
+            setEnrolling(false);
+        }
+    };
+
     if (loading) {
         return <CircularProgress aria-label="Loading student profile" />;
     }
@@ -143,6 +205,8 @@ export default function StudentProfile() {
     }
 
     if (!student) return null;
+
+    const hasCurrentEnrollment = student.enrollments.some((enrollment) => enrollment.isCurrentYear);
 
     return (
         <Box>
@@ -167,12 +231,32 @@ export default function StudentProfile() {
                 />
             </Stack>
             <Stack direction="row" justifyContent="flex-end" mb={2}>
-                {!editing && student.enrollments.some((enrollment) => enrollment.isCurrentYear) && (
+                {!editing && (hasCurrentEnrollment ? (
                     <Button variant="contained" onClick={() => setEditing(true)}>
                         Edit student / placement
                     </Button>
-                )}
+                ) : (
+                    <Button
+                        variant="contained"
+                        onClick={() => {
+                            setEnrollmentGradeId("");
+                            setEnrollmentSectionId("");
+                            setEnrollmentRollNo("");
+                            setEnrollmentError("");
+                            setEnrollmentDialogOpen(true);
+                        }}
+                        disabled={grades.length === 0}
+                    >
+                        Enroll in active year
+                    </Button>
+                ))}
             </Stack>
+            {success && <Alert severity="success" sx={{ mb: 2 }}>{success}</Alert>}
+            {!hasCurrentEnrollment && grades.length === 0 && (
+                <Alert severity="info" sx={{ mb: 3 }}>
+                    Create an active academic year with grades and sections before enrolling this student.
+                </Alert>
+            )}
 
             {student.mustChangePassword && (
                 <Alert severity="info" sx={{ mb: 3 }}>
@@ -223,11 +307,14 @@ export default function StudentProfile() {
                                 ))}
                             </TextField>
                             <TextField
+                                required
                                 fullWidth
                                 label="Roll number"
                                 name="rollNo"
                                 value={form.rollNo}
                                 onChange={handleChange}
+                                inputProps={{ maxLength: 20 }}
+                                helperText="Must be unique within the selected section and academic year."
                             />
                         </Stack>
                         <Stack direction="row" justifyContent="flex-end" spacing={2}>
@@ -278,6 +365,80 @@ export default function StudentProfile() {
                     </TableBody>
                 </Table>
             </TableContainer>
+
+            <Dialog
+                open={enrollmentDialogOpen}
+                onClose={() => !enrolling && setEnrollmentDialogOpen(false)}
+                fullWidth
+                maxWidth="sm"
+            >
+                <Box component="form" onSubmit={handleEnroll}>
+                    <DialogTitle>Enroll {student.name}</DialogTitle>
+                    <DialogContent>
+                        <Stack spacing={2} sx={{ pt: 1 }}>
+                            {enrollmentError && <Alert severity="error">{enrollmentError}</Alert>}
+                            <TextField
+                                select
+                                required
+                                fullWidth
+                                label="Grade"
+                                value={enrollmentGradeId}
+                                onChange={(event) => {
+                                    setEnrollmentGradeId(event.target.value);
+                                    setEnrollmentSectionId("");
+                                    setEnrollmentSections([]);
+                                    setEnrollmentError("");
+                                }}
+                            >
+                                {grades.map((grade) => (
+                                    <MenuItem key={grade.id} value={String(grade.id)}>
+                                        {grade.grade_name}
+                                    </MenuItem>
+                                ))}
+                            </TextField>
+                            <TextField
+                                select
+                                required
+                                fullWidth
+                                label="Section"
+                                value={enrollmentSectionId}
+                                onChange={(event) => setEnrollmentSectionId(event.target.value)}
+                                disabled={!enrollmentGradeId || loadingEnrollmentSections || enrollmentSections.length === 0}
+                                helperText={enrollmentGradeId && !loadingEnrollmentSections && enrollmentSections.length === 0
+                                    ? "Create a section for this grade before enrolling the student."
+                                    : undefined}
+                            >
+                                {enrollmentSections.map((section) => (
+                                    <MenuItem key={section.id} value={String(section.id)}>
+                                        {section.section_name}
+                                    </MenuItem>
+                                ))}
+                            </TextField>
+                            <TextField
+                                required
+                                fullWidth
+                                label="Roll number"
+                                value={enrollmentRollNo}
+                                onChange={(event) => setEnrollmentRollNo(event.target.value)}
+                                inputProps={{ maxLength: 20 }}
+                                helperText="Must be unique within the selected section and academic year."
+                            />
+                        </Stack>
+                    </DialogContent>
+                    <DialogActions>
+                        <Button onClick={() => setEnrollmentDialogOpen(false)} disabled={enrolling}>
+                            Cancel
+                        </Button>
+                        <Button
+                            type="submit"
+                            variant="contained"
+                            disabled={enrolling || !enrollmentGradeId || !enrollmentSectionId || !enrollmentRollNo.trim()}
+                        >
+                            {enrolling ? "Enrolling..." : "Enroll student"}
+                        </Button>
+                    </DialogActions>
+                </Box>
+            </Dialog>
         </Box>
     );
 }

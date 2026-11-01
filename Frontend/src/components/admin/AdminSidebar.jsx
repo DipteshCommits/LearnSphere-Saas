@@ -65,7 +65,7 @@ const menuItems = [
             },
             {
                 text: "Subjects",
-                comingSoon: true,
+                path: "/admin/subjects",
             },
         ],
     },
@@ -103,7 +103,7 @@ const menuItems = [
             },
             {
                 text: "Assignments",
-                comingSoon: true,
+                path: "/admin/teacher-assignments",
             },
         ],
     },

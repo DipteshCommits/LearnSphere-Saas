@@ -25,10 +25,10 @@ export const admitStudent = async ({
     const normalizedAdmissionNo = typeof admissionNo === 'string' ? admissionNo.trim() : '';
     const normalizedRollNo = typeof rollNo === 'string' ? rollNo.trim() : '';
 
-    if (!normalizedName || !normalizedEmail || !normalizedAdmissionNo
+    if (!normalizedName || !normalizedEmail || !normalizedAdmissionNo || !normalizedRollNo
         || typeof temporaryPassword !== 'string' || temporaryPassword.length < 10
         || !gradeId || !sectionId) {
-        const error = new Error('Name, email, admission number, temporary password (at least 10 characters), grade, and section are required');
+        const error = new Error('Name, email, admission number, roll number, temporary password (at least 10 characters), grade, and section are required');
         error.statusCode = 400;
         throw error;
     }
@@ -159,8 +159,9 @@ export const updateStudent = async ({
     const normalizedAdmissionNo = typeof admissionNo === 'string' ? admissionNo.trim() : '';
     const normalizedRollNo = typeof rollNo === 'string' ? rollNo.trim() : '';
 
-    if (!normalizedName || !normalizedEmail || !normalizedAdmissionNo || !gradeId || !sectionId) {
-        const error = new Error('Name, email, admission number, grade, and section are required');
+    if (!normalizedName || !normalizedEmail || !normalizedAdmissionNo
+        || !normalizedRollNo || !gradeId || !sectionId) {
+        const error = new Error('Name, email, admission number, roll number, grade, and section are required');
         error.statusCode = 400;
         throw error;
     }

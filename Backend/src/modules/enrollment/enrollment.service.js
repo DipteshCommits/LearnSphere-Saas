@@ -1,6 +1,5 @@
 import {
     createEnrollment,
-    findEnrollmentsByStudentAndYear,
     getEnrollmentsByStudent
 } from './enrollment.repository.js';
 
@@ -16,6 +15,22 @@ export const enrollStudent = async ({
     sectionId,
     rollNo
 }) => {
+    const normalizedStudentId = Number(studentId);
+    const normalizedGradeId = Number(gradeId);
+    const normalizedSectionId = Number(sectionId);
+    const normalizedRollNo = typeof rollNo === 'string' ? rollNo.trim() : '';
+    if (![normalizedStudentId, normalizedGradeId, normalizedSectionId]
+        .every((id) => Number.isSafeInteger(id) && id > 0)) {
+        const error = new Error('Provide valid student, grade, and section IDs');
+        error.statusCode = 400;
+        throw error;
+    }
+    if (!normalizedRollNo || normalizedRollNo.length > 20) {
+        const error = new Error('Roll number is required and must be 20 characters or fewer');
+        error.statusCode = 400;
+        throw error;
+    }
+
     const activeYear = await getActiveAcademicYear(organizationId);
 
     if (!activeYear) {
@@ -24,14 +39,14 @@ export const enrollStudent = async ({
         throw err;
     }
 
-    const student = await findStudentByIdAndOrg(studentId, organizationId);
+    const student = await findStudentByIdAndOrg(normalizedStudentId, organizationId);
     if (!student) {
         const err = new Error('Student not found');
         err.statusCode = 404;
         throw err;
     }
 
-    const grade = await findGradeByIdAndOrg(gradeId, organizationId);
+    const grade = await findGradeByIdAndOrg(normalizedGradeId, organizationId);
     if (!grade) {
         const err = new Error('Grade not found');
         err.statusCode = 404;
@@ -44,27 +59,20 @@ export const enrollStudent = async ({
         throw err;
     }
 
-    const section = await findSectionById(sectionId, gradeId, activeYear.id);
+    const section = await findSectionById(normalizedSectionId, normalizedGradeId, activeYear.id);
     if (!section) {
         const err = new Error('Section not found');
         err.statusCode = 404;
         throw err;
     }
 
-    const alreadyEnrolled = await findEnrollmentsByStudentAndYear(studentId, activeYear.id);
-
-    if (alreadyEnrolled) {
-        const err = new Error('Student already enrolled in active academic year');
-        err.statusCode = 409;
-        throw err;
-    }
-
     return await createEnrollment({
-        studentId,
+        organizationId,
+        studentId: normalizedStudentId,
         academicYearId: activeYear.id,
-        gradeId,
-        sectionId,
-        rollNo
+        gradeId: normalizedGradeId,
+        sectionId: normalizedSectionId,
+        rollNo: normalizedRollNo
     });
 };
 

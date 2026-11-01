@@ -158,7 +158,16 @@ export default function AddStudent() {
                                 <MenuItem key={section.id} value={String(section.id)}>{section.section_name}</MenuItem>
                             ))}
                         </TextField>
-                        <TextField fullWidth label="Roll number (optional)" name="rollNo" value={form.rollNo} onChange={handleChange} />
+                        <TextField
+                            required
+                            fullWidth
+                            label="Roll number"
+                            name="rollNo"
+                            value={form.rollNo}
+                            onChange={handleChange}
+                            inputProps={{ maxLength: 20 }}
+                            helperText="Must be unique within the selected section and academic year."
+                        />
                     </Stack>
                     <Stack direction="row" spacing={2} justifyContent="flex-end">
                         <Button onClick={() => navigate("/admin/students")} disabled={saving}>Cancel</Button>

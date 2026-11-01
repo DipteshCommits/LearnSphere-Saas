@@ -35,6 +35,33 @@ export const createStudentWithEnrollment = async ({
     const connection = await getConnection();
     try {
         await finishTransaction(connection, 'beginTransaction');
+        const sections = await runQuery(
+            connection,
+            `SELECT id FROM sections
+            WHERE id = ? AND grade_id = ? AND academic_year_id = ?
+            FOR UPDATE`,
+            [sectionId, gradeId, academicYearId]
+        );
+        if (!sections.length) {
+            const error = new Error('The selected section is no longer available for this academic year');
+            error.statusCode = 409;
+            throw error;
+        }
+
+        const duplicateRollNumber = await runQuery(
+            connection,
+            `SELECT id FROM enrollments
+            WHERE academic_year_id = ? AND section_id = ? AND roll_no = ?
+            LIMIT 1
+            FOR UPDATE`,
+            [academicYearId, sectionId, rollNo]
+        );
+        if (duplicateRollNumber.length) {
+            const error = new Error('This roll number is already assigned in the selected section');
+            error.statusCode = 409;
+            throw error;
+        }
+
         const userResult = await runQuery(
             connection,
             `INSERT INTO users
@@ -88,21 +115,17 @@ export const getStudentsWithFilters = ({
                 sec.section_name AS sectionName,
                 e.roll_no AS rollNo,
                 u.is_active AS isActive
-            FROM enrollments e
-            JOIN students s ON e.student_id = s.id
+            FROM students s
             JOIN users u ON s.user_id = u.id
-            JOIN academic_years ay ON e.academic_year_id = ay.id
-            JOIN grades g ON e.grade_id = g.id
-            JOIN sections sec ON e.section_id = sec.id
+            LEFT JOIN enrollments e
+                ON e.student_id = s.id AND e.academic_year_id = ?
+            LEFT JOIN academic_years ay ON e.academic_year_id = ay.id
+            LEFT JOIN grades g ON e.grade_id = g.id
+            LEFT JOIN sections sec ON e.section_id = sec.id
             WHERE u.organization_id = ?
         `;
 
-        const params = [organizationId];
-
-        if (academicYearId) {
-            query += ` AND e.academic_year_id = ?`;
-            params.push(academicYearId);
-        }
+        const params = [academicYearId, organizationId];
 
         if (gradeId) {
             query += ` AND e.grade_id = ?`;
@@ -244,6 +267,21 @@ export const updateStudentAndCurrentEnrollment = async ({
 
         if (!students[0].enrollment_id) {
             const error = new Error('Student has no enrollment in the active academic year');
+            error.statusCode = 409;
+            throw error;
+        }
+
+        const duplicateRollNumber = await runQuery(
+            connection,
+            `SELECT id FROM enrollments
+            WHERE academic_year_id = ? AND section_id = ? AND roll_no = ?
+                AND id <> ?
+            LIMIT 1
+            FOR UPDATE`,
+            [academicYearId, sectionId, rollNo, students[0].enrollment_id]
+        );
+        if (duplicateRollNumber.length) {
+            const error = new Error('This roll number is already assigned in the selected section');
             error.statusCode = 409;
             throw error;
         }

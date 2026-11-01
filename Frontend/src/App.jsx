@@ -17,6 +17,8 @@ import AddStudent from "./pages/admin/students/AddStudent";
 import ChangePassword from "./pages/login/ChangePassword";
 import StudentProfile from "./pages/admin/students/StudentProfile";
 import Teachers from "./pages/admin/Teachers";
+import Subjects from "./pages/admin/Subjects";
+import TeacherAssignments from "./pages/admin/TeacherAssignments";
 
 function App() {
   return (
@@ -54,6 +56,8 @@ function App() {
           <Route path="grades" element={<Grades />} />
           <Route path="sections" element={<Sections />} />
           <Route path="teachers" element={<Teachers />} />
+          <Route path="teacher-assignments" element={<TeacherAssignments />} />
+          <Route path="subjects" element={<Subjects />} />
         </Route>
       </Routes>
     </BrowserRouter>

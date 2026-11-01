@@ -10,6 +10,8 @@ import orgAdminDashboardRoutes from '../modules/org-admin/dashboard/dashboard.ro
 import schoolProfileRoutes from '../modules/org-admin/school/schoolProfile.routes.js';
 import studentManagementRoutes from '../modules/org-admin/student-management/studentManagement.routes.js';
 import teacherManagementRoutes from '../modules/org-admin/teacher-management/teacherManagement.routes.js';
+import subjectManagementRoutes from '../modules/org-admin/subject-management/subjectManagement.routes.js';
+import teacherAssignmentRoutes from '../modules/org-admin/teacher-assignment/teacherAssignment.routes.js';
 
 
 const router = Router();
@@ -24,5 +26,7 @@ router.use('/org-admin/dashboard',orgAdminDashboardRoutes);
 router.use('/org-admin/school',schoolProfileRoutes);
 router.use('/org-admin/students', studentManagementRoutes);
 router.use('/org-admin/teachers', teacherManagementRoutes);
+router.use('/org-admin/subjects', subjectManagementRoutes);
+router.use('/org-admin/teacher-assignments', teacherAssignmentRoutes);
 
 export default router;
